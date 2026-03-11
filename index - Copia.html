@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workshop IA Acadêmica - Prof. Me. Benedito Palheta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;600&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        h1, h2, h3, h4, .font-heading {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* Neural Network Canvas Background */
+        #neural-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .bg-grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-size: 50px 50px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+        }
+
+        .glass {
+            background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ai-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .ai-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px -15px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Scanline Animation */
+        .ai-card::after {
+            content: "";
+            position: absolute;
+            top: -100%;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, rgba(59, 130, 246, 0.08), transparent);
+            animation: scan 5s infinite linear;
+            pointer-events: none;
+        }
+
+        @keyframes scan {
+            0% { top: -100%; }
+            100% { top: 100%; }
+        }
+
+        .btn-red {
+            background-color: #ef4444;
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-red:hover {
+            background-color: #dc2626;
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(239, 68, 68, 0.7);
+        }
+
+        .neon-glow {
+            text-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
+        }
+
+        .coupon-dashed {
+            border: 2px dashed rgba(59, 130, 246, 0.4);
+            background: rgba(59, 130, 246, 0.08);
+        }
+
+        .instructor-img-frame {
+            position: relative;
+            border-radius: 4rem;
+            padding: 10px;
+            background: linear-gradient(45deg, #3b82f6, transparent, #ef4444);
+        }
+
+        .hidden { display: none; }
+
+        /* Estilo para textos longos (Privacidade/Termos) */
+        .legal-text h3 { @apply text-white font-bold mt-8 mb-4 uppercase text-sm tracking-widest; }
+        .legal-text p { @apply text-slate-400 mb-4 leading-relaxed; }
+        .legal-text ul { @apply list-disc list-inside text-slate-400 mb-4 space-y-2; }
+    </style>
+</head>
+<body>
+
+    <!-- Neural Network Background -->
+    <canvas id="neural-canvas"></canvas>
+    <div class="bg-grid-overlay"></div>
+
+    <!-- Header -->
+    <nav class="fixed w-full z-50 glass py-4">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <button onclick="navigateTo('home')" class="flex items-center space-x-2 outline-none">
+                <div class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-lg flex items-center justify-center shadow-lg">
+                    <i class="fas fa-microchip text-white text-lg md:text-xl"></i>
+                </div>
+                <span class="font-bold text-lg md:text-xl tracking-tighter font-heading uppercase">IA ACADÊMICA</span>
+            </button>
+            <a href="https://pay.hotmart.com/R104856039O" target="_blank" class="hidden md:block btn-red text-white px-8 py-2.5 rounded-full font-bold text-sm">
+                INSCRIÇÕES ABERTAS
+            </a>
+            <!-- Mobile CTA (Visível apenas em mobile) -->
+            <a href="https://pay.hotmart.com/R104856039O" target="_blank" class="md:hidden btn-red text-white px-4 py-2 rounded-full font-bold text-xs">
+                INSCREVA-SE
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content Wrapper -->
+    <div id="page-content">
+        
+        <!-- HOME PAGE -->
+        <main id="home-page">
+            <!-- Hero Section -->
+            <header class="relative pt-32 md:pt-48 pb-16 md:pb-24 overflow-hidden">
+                <div class="container mx-auto px-6 text-center lg:text-left flex flex-col lg:flex-row items-center gap-12 md:gap-16">
+                    <div class="lg:w-3/5 relative order-2 lg:order-1">
+                        <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] md:text-xs font-bold mb-6 md:mb-8 uppercase tracking-widest">
+                            <span class="flex h-2 w-2 rounded-full bg-blue-500 animate-ping"></span>
+                            <span>Ao Vivo via Google Meet • Certificado de 8h</span>
+                        </div>
+                        <h1 class="text-4xl md:text-8xl font-extrabold leading-[1.1] md:leading-[0.95] mb-6 md:mb-8 font-heading">
+                            Workshop <br>
+                            <span class="text-blue-500 neon-glow italic">IA Acadêmica</span>
+                        </h1>
+                        <p class="text-slate-400 text-lg md:text-2xl mb-8 md:mb-10 max-w-2xl leading-relaxed">
+                            Converta o potencial do <span class="text-white font-bold">NotebookLM e do Gemini</span> em excelência científica com o <span class="text-white">Prof. Me. Benedito Palheta</span>.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-6 md:gap-8 justify-center lg:justify-start items-center">
+                            <a href="https://pay.hotmart.com/R104856039O" target="_blank" class="btn-red w-full sm:w-auto text-white px-8 md:px-14 py-4 md:py-6 rounded-2xl font-black text-lg md:text-2xl flex items-center justify-center">
+                                QUERO MINHA VAGA <i class="fas fa-chevron-right ml-3"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="lg:w-2/5 order-1 lg:order-2 w-full max-w-md lg:max-w-none">
+                        <div class="relative p-2 md:p-3 ai-card rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl">
+                            <img src="images/Capa_produto_horizontal_banner_workshop_ia_academicos_hotmart_1040_720.jpg" alt="Capa Workshop IA Acadêmica" class="rounded-[2.2rem] md:rounded-[2.8rem] shadow-2xl w-full h-auto">
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Tech Stack Aura -->
+            <section class="py-8 md:py-12 border-y border-white/5 bg-slate-950/90 backdrop-blur-md">
+                <div class="container mx-auto px-6 text-center">
+                    <div class="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-70">
+                        <div class="flex items-center space-x-3 md:space-x-4">
+                            <i class="fas fa-brain text-blue-500 text-2xl md:text-3xl"></i>
+                            <span class="font-heading font-bold text-sm md:text-xl text-slate-200 uppercase tracking-tighter text-nowrap">NotebookLM</span>
+                        </div>
+                        <div class="flex items-center space-x-3 md:space-x-4">
+                            <i class="fas fa-microchip text-purple-500 text-2xl md:text-3xl"></i>
+                            <span class="font-heading font-bold text-sm md:text-xl text-slate-200 uppercase tracking-tighter text-nowrap">Google Gemini</span>
+                        </div>
+                        <div class="flex items-center space-x-3 md:space-x-4">
+                            <i class="fas fa-graduation-cap text-blue-400 text-2xl md:text-3xl"></i>
+                            <span class="font-heading font-bold text-sm md:text-xl text-slate-200 uppercase tracking-tighter text-nowrap">Especialidade IA</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Programa Prático -->
+            <section id="programa" class="py-20 md:py-32 px-6">
+                <div class="container mx-auto">
+                    <div class="text-center mb-16 md:mb-24">
+                        <h2 class="text-3xl md:text-7xl font-black font-heading mb-4 md:mb-6 tracking-tighter uppercase">A TRILHA DA <span class="text-blue-500">PRODUTIVIDADE</span></h2>
+                        <div class="w-20 md:w-32 h-2 bg-blue-600 mx-auto rounded-full mb-4"></div>
+                        <p class="text-slate-500 font-bold uppercase tracking-widest text-[10px] md:text-sm">Dois momentos práticos fundamentais</p>
+                    </div>
+
+                    <div class="flex flex-col lg:flex-row items-center gap-12 md:gap-20 mb-32 md:mb-48">
+                        <div class="lg:w-1/2 w-full">
+                            <div class="ai-card p-2 md:p-4 rounded-[2.5rem] md:rounded-[3.5rem] group">
+                                <img src="images/momento_1_workshop_ia_academicos.jpg" alt="NotebookLM" class="rounded-[2.2rem] md:rounded-[2.8rem] group-hover:scale-105 transition-transform duration-1000 w-full h-auto">
+                            </div>
+                        </div>
+                        <div class="lg:w-1/2">
+                            <div class="inline-block px-4 py-1 bg-blue-600/20 text-blue-400 rounded-full text-[10px] md:text-xs font-bold mb-4 md:mb-6">MÓDULO 01</div>
+                            <h3 class="text-3xl md:text-5xl font-bold font-heading mb-6 md:mb-8 uppercase">Curadoria com <br><span class="text-blue-500">NotebookLM</span></h3>
+                            <p class="text-slate-400 text-lg md:text-xl leading-relaxed mb-6 md:mb-8">Aprenda a transformar sua literatura cinza e centenas de PDFs em um ecossistema de conhecimento dinâmico.</p>
+                            <ul class="space-y-4 md:space-y-6">
+                                <li class="flex items-center space-x-4 glass p-4 md:p-5 rounded-2xl md:rounded-3xl border-l-4 border-blue-500">
+                                    <i class="fas fa-layer-group text-blue-500 text-lg md:text-xl"></i>
+                                    <span class="text-slate-200 font-semibold text-base md:text-lg text-left">Organização bibliográfica inteligente.</span>
+                                </li>
+                                <li class="flex items-center space-x-4 glass p-4 md:p-5 rounded-2xl md:rounded-3xl border-l-4 border-blue-500">
+                                    <i class="fas fa-search-plus text-blue-500 text-lg md:text-xl"></i>
+                                    <span class="text-slate-200 font-semibold text-base md:text-lg text-left">Resumos contextuais sem alucinações.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col lg:flex-row-reverse items-center gap-12 md:gap-20">
+                        <div class="lg:w-1/2 w-full">
+                            <div class="ai-card p-2 md:p-4 rounded-[2.5rem] md:rounded-[3.5rem] group border-purple-500/20">
+                                <img src="images/momento_2_workshop_ia_academicos.jpg" alt="Gemini" class="rounded-[2.2rem] md:rounded-[2.8rem] group-hover:scale-105 transition-transform duration-1000 w-full h-auto">
+                            </div>
+                        </div>
+                        <div class="lg:w-1/2">
+                            <div class="inline-block px-4 py-1 bg-purple-600/20 text-purple-400 rounded-full text-[10px] md:text-xs font-bold mb-4 md:mb-6">MÓDULO 02</div>
+                            <h3 class="text-3xl md:text-5xl font-bold font-heading mb-6 md:mb-8 uppercase">Redação com <br><span class="text-purple-500">Gemini</span></h3>
+                            <p class="text-slate-400 text-lg md:text-xl leading-relaxed mb-6 md:mb-8">Utilize o LLM para refinamento estilístico e análise de dados complexos com rigor científico.</p>
+                            <ul class="space-y-4 md:space-y-6">
+                                <li class="flex items-center space-x-4 glass p-4 md:p-5 rounded-2xl md:rounded-3xl border-l-4 border-purple-500">
+                                    <i class="fas fa-pen-nib text-purple-500 text-lg md:text-xl"></i>
+                                    <span class="text-slate-200 font-semibold text-base md:text-lg text-left">Engenharia de Prompts Acadêmicos.</span>
+                                </li>
+                                <li class="flex items-center space-x-4 glass p-4 md:p-5 rounded-2xl md:rounded-3xl border-l-4 border-purple-500">
+                                    <i class="fas fa-chart-line text-purple-500 text-lg md:text-xl"></i>
+                                    <span class="text-slate-200 font-semibold text-base md:text-lg text-left">Refinamento de manuscritos para o Qualis A.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bio do Professor -->
+            <section class="py-20 md:py-32 px-6 border-y border-white/5 bg-slate-950/50">
+                <div class="container mx-auto">
+                    <div class="flex flex-col lg:flex-row items-center gap-12 md:gap-20 glass p-8 md:p-24 rounded-[3rem] md:rounded-[4rem] border-white/5 relative">
+                        <div class="lg:w-1/3 w-full max-w-sm lg:max-w-none">
+                            <div class="instructor-img-frame">
+                                <img src="images/Benedito_Palheta_2026.jpg" alt="Prof. Me. Benedito Palheta" class="w-full aspect-square object-cover rounded-[2.8rem] md:rounded-[3.5rem] grayscale hover:grayscale-0 transition-all duration-1000">
+                            </div>
+                        </div>
+                        <div class="lg:w-2/3 text-center lg:text-left">
+                            <h4 class="text-blue-500 font-bold uppercase tracking-widest text-[10px] md:text-xs mb-4">Seu Mentor</h4>
+                            <h2 class="text-3xl md:text-6xl font-black font-heading mb-6 md:mb-8 uppercase">Prof. Me. Benedito Palheta</h2>
+                            <div class="space-y-4 md:space-y-6 text-slate-300 text-base md:text-xl leading-relaxed">
+                                <p><strong>Mestre em Gestão de Políticas Públicas</strong>, unindo o rigor estratégico à vanguarda tecnológica.</p>
+                                <p>Especialista em <strong>Inteligência Artificial</strong>, Ciência de Dados e Cibersegurança, o professor dedica sua carreira a traduzir algoritmos complexos em ferramentas de produtividade acadêmica.</p>
+                                <div class="flex flex-wrap justify-center lg:justify-start gap-3 md:gap-4 pt-4 md:pt-6">
+                                    <div class="px-4 md:px-5 py-2 glass rounded-xl md:rounded-2xl border border-blue-500/30 text-blue-400 font-bold text-xs md:text-sm">Data Science Expert</div>
+                                    <div class="px-4 md:px-5 py-2 glass rounded-xl md:rounded-2xl border border-blue-500/30 text-blue-400 font-bold text-xs md:text-sm">AI Specialist</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Oferta -->
+            <section id="inscricao" class="py-20 md:py-32 px-6">
+                <div class="container mx-auto max-w-5xl ai-card rounded-[3rem] md:rounded-[4.5rem] p-8 md:p-24 text-center bg-slate-950/90 relative overflow-hidden border-blue-500/20">
+                    <div class="absolute -top-40 -right-40 w-96 h-96 bg-red-600/10 blur-[150px]"></div>
+                    <h2 class="text-3xl md:text-8xl font-black font-heading mb-8 md:mb-12 uppercase tracking-tighter">SUA VEZ DE <br>EVOLUIR</h2>
+                    <div class="flex flex-col md:flex-row items-center justify-center gap-12 md:gap-16 mb-12 md:mb-20">
+                        <div class="text-center md:text-right">
+                            <p class="text-slate-600 line-through text-lg md:text-2xl font-bold">R$ 197,00</p>
+                            <div class="flex items-baseline justify-center md:justify-end text-white">
+                                <span class="text-2xl md:text-3xl font-bold text-slate-500 mr-2 md:mr-3">R$</span>
+                                <span class="text-7xl md:text-[9rem] font-black font-heading tracking-tighter leading-none">99</span>
+                            </div>
+                        </div>
+                        <div class="hidden md:block w-px h-40 bg-white/10"></div>
+                        <div class="coupon-dashed p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] max-w-sm relative">
+                            <h4 class="text-2xl md:text-4xl font-black mb-2 md:mb-4 text-blue-500">50% OFF</h4>
+                            <p class="text-slate-500 text-[10px] md:text-xs leading-relaxed italic">"Pesquisadores: solicitem o código de desconto junto à secretaria ou centro acadêmico de sua faculdade."</p>
+                        </div>
+                    </div>
+                    <a href="https://pay.hotmart.com/R104856039O" target="_blank" class="btn-red inline-block w-full max-w-2xl py-6 md:py-8 rounded-2xl md:rounded-3xl text-white font-black text-xl md:text-3xl shadow-2xl group">
+                        GARANTIR MINHA VAGA <i class="fas fa-bolt ml-4 group-hover:text-yellow-400 transition-colors"></i>
+                    </a>
+                </div>
+            </section>
+        </main>
+
+        <!-- PRIVACY PAGE (Internal) -->
+        <section id="privacy-page" class="hidden min-h-screen pt-48 pb-24 px-6">
+            <div class="container mx-auto max-w-4xl">
+                <div class="glass p-10 md:p-16 rounded-[4rem] legal-text">
+                    <h2 class="text-3xl md:text-6xl font-black font-heading mb-10 tracking-tighter uppercase">POLÍTICA DE <span class="text-blue-500">PRIVACIDADE</span></h2>
+                    
+                    <p>Na <strong>Plataforma de Aperfeiçoamento Modular - EDUPAM</strong> nos comprometemos com a privacidade, segurança e transparência do tratamento de dados pessoais dos nossos Usuários/Clientes. Esta Política de Privacidade estabelece como é feita a coleta, uso e transferência de informações de clientes que acessam nosso site.</p>
+                    
+                    <p>Ao utilizar nossos serviços, você entende que coletaremos e usaremos suas informações pessoais nas formas descritas desta Política, sob as normas de Proteção de Dados (LGPD, Lei Federal 13.709/2018), das disposições consumeristas da Lei Federal 8078/1990 e as demais normas do ordenamento jurídicos brasileiros aplicáveis.</p>
+
+                    <p>Dessa forma, a <strong>Plataforma de Aperfeiçoamento Modular - EDUPAM</strong>, doravante denominada simplesmente como “Plataforma de Aperfeiçoamento Modular - EDUPAM”, inscrita sob o CNPJ nº 36.525.336/0001-15, no papel de Controladora de Dados, obriga-se ao disposto na presente Política de Privacidade.</p>
+
+                    <h3>1. Identificação</h3>
+                    <p>Este Site é de propriedade, mantido e operado por “Plataforma de Aperfeiçoamento Modular - EDUPAM”, inscrita sob o CNPJ nº 36.525.336/0001-15.</p>
+
+                    <h3>2. Informações Gerais</h3>
+                    <p>O Site toma todas as medidas necessárias para proteger a privacidade do Usuário, em atendimento à legislação em vigor. Este documento detalha as formas de coleta, armazenamento, utilização, compartilhamento e divulgação de seus dados pessoais, bem como aponta claramente as medidas tomadas para assegurar a proteção dos dados coletados.</p>
+
+                    <h3>3. Coleta de E-mails</h3>
+                    <p>Ao inserir seu e-mail em um dos formulários do Site, você nos autoriza a lhe enviar e-mail periódicos tais como campanhas, promoções, avisos e notificações. Você poderá efetuar a remoção do seu e-mail de nossas bases fazendo uma solicitação através de nosso Formulário de Contato.</p>
+
+                    <h3>4. Coleta, Utilização e Armazenamento dos Dados</h3>
+                    <p><strong>Armazenamento dos Dados:</strong> O site armazenará todos os dados coletados em suas bases de dados protegidas e seguras. Tais dados serão acessados apenas por processos computadorizados automatizados, profissionais autorizados e nos casos listados nesta Política.</p>
+                    <p><strong>Coleta:</strong> O Site poderá coletar dados pessoais do Usuário voluntariamente no processo de navegação do Site ou quando entrar em contato.</p>
+                    <p><strong>Cookies:</strong> Visando oferecer a melhor experiência, o Site pode utilizar-se de tecnologias (Cookies) para coletar e armazenar informações relacionadas à visita do Usuário.</p>
+
+                    <h3>5. Compartilhamento e Divulgação dos Dados</h3>
+                    <p>O Site tem a confidencialidade dos dados pessoais do Usuário como prioridade. Assume o compromisso de não divulgar, compartilhar ou vender tais informações a terceiros, exceto nos casos autorizados ou por determinação judicial.</p>
+
+                    <h3>6. Medidas de Segurança</h3>
+                    <p>O Site adota recursos tecnológicos avançados para garantir a segurança de todos os dados pessoais coletados e armazenados (Criptografia e Firewalls).</p>
+
+                    <div class="mt-12">
+                        <button onclick="navigateTo('home')" class="text-blue-500 hover:text-white transition uppercase tracking-widest text-xs font-bold">
+                            <i class="fas fa-arrow-left mr-2"></i> Voltar para a Início
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TERMS PAGE (Internal) -->
+        <section id="terms-page" class="hidden min-h-screen pt-48 pb-24 px-6">
+            <div class="container mx-auto max-w-4xl">
+                <div class="glass p-10 md:p-16 rounded-[4rem] legal-text">
+                    <h2 class="text-3xl md:text-5xl font-black font-heading mb-10 tracking-tighter uppercase">TERMOS DE <span class="text-blue-500">USO</span></h2>
+                    
+                    <h3>1. Acesso ao Conteúdo</h3>
+                    <p>O acesso ao Workshop IA Acadêmica é pessoal e intransferível. O link do Google Meet é de uso exclusivo dos inscritos e não deve ser compartilhado com terceiros.</p>
+
+                    <h3>2. Certificação</h3>
+                    <p>O certificado de 8 horas será emitido exclusivamente mediante a participação e a realização da pesquisa de satisfação obrigatória na plataforma EDUPAM.</p>
+
+                    <h3>3. Propriedade Intelectual</h3>
+                    <p>Todo material didático fornecido é de propriedade da EDUPAM e do Prof. Benedito Palheta. A reprodução sem autorização prévia é proibida.</p>
+
+                    <h3>4. Responsabilidade</h3>
+                    <p>O workshop fornece ferramentas e técnicas de IA. O uso ético e o rigor acadêmico nos trabalhos finais são de inteira responsabilidade do aluno.</p>
+
+                    <h3>5. Cancelamento e Reembolso</h3>
+                    <p>O prazo para solicitação de reembolso é de 7 dias após a compra, conforme o Código de Defesa do Consumidor.</p>
+
+                    <div class="mt-12">
+                        <button onclick="navigateTo('home')" class="text-blue-500 hover:text-white transition uppercase tracking-widest text-xs font-bold">
+                            <i class="fas fa-arrow-left mr-2"></i> Voltar para a Início
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SUPPORT PAGE (Internal) -->
+        <section id="support-page" class="hidden min-h-screen pt-48 pb-24 px-6">
+            <div class="container mx-auto max-w-4xl text-center">
+                <h2 class="text-4xl md:text-6xl font-black font-heading mb-6 tracking-tighter uppercase">AJUDA & <span class="text-blue-500">SUPORTE</span></h2>
+                <p class="text-slate-400 text-lg mb-16 italic text-center">Estamos prontos para ajudar na sua jornada acadêmica.</p>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <a href="https://wa.me/5563981202076" target="_blank" class="ai-card p-10 rounded-[3rem] flex flex-col items-center group">
+                        <div class="w-20 h-20 bg-green-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                            <i class="fab fa-whatsapp text-green-500 text-4xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold font-heading mb-2 uppercase">WhatsApp</h3>
+                        <p class="text-slate-500 text-sm mb-6">Atendimento rápido por mensagem.</p>
+                        <span class="text-green-500 font-bold text-lg">+55 (63) 98120-2076</span>
+                    </a>
+
+                    <a href="mailto:suporte@edupam.com.br" class="ai-card p-10 rounded-[3rem] flex flex-col items-center group">
+                        <div class="w-20 h-20 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-envelope text-blue-500 text-4xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold font-heading mb-2 uppercase tracking-tighter">E-mail</h3>
+                        <p class="text-slate-500 text-sm mb-6">Solicitações técnicas e suporte oficial.</p>
+                        <span class="text-blue-500 font-bold text-lg">suporte@edupam.com.br</span>
+                    </a>
+                </div>
+
+                <div class="mt-16">
+                    <button onclick="navigateTo('home')" class="text-slate-500 hover:text-white transition uppercase tracking-widest text-xs font-bold">
+                        <i class="fas fa-arrow-left mr-2"></i> Voltar para a Início
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-20 border-t border-white/5 bg-slate-950/95">
+        <div class="container mx-auto px-6 text-center">
+            <button onclick="navigateTo('home')" class="flex items-center justify-center space-x-4 mb-10 mx-auto outline-none">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg">
+                    <i class="fas fa-brain text-white"></i>
+                </div>
+                <span class="font-bold font-heading tracking-tighter text-2xl uppercase">WORKSHOP IA ACADÊMICA</span>
+            </button>
+            
+            <div class="flex flex-wrap justify-center gap-8 md:gap-12 text-slate-600 text-[10px] uppercase font-bold tracking-[0.3em] mb-12">
+                <button onclick="navigateTo('privacy')" class="hover:text-blue-500 transition-colors uppercase outline-none">Privacidade</button>
+                <button onclick="navigateTo('terms')" class="hover:text-blue-500 transition-colors uppercase outline-none">Termos</button>
+                <button onclick="navigateTo('support')" class="hover:text-blue-500 transition-colors uppercase outline-none">Ajuda & Suporte</button>
+            </div>
+            
+            <p class="text-slate-800 text-xs mb-4 font-bold uppercase tracking-widest">© 2026 • Prof. Me. Benedito Palheta</p>
+            <p class="text-slate-900 text-[9px] max-w-2xl mx-auto leading-relaxed italic opacity-40">
+                Google, Gemini e NotebookLM são marcas comerciais da Google LLC. Iniciativa educacional independente focada no desenvolvimento profissional e científico.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // SPA Navigation Logic
+        function navigateTo(pageId) {
+            const home = document.getElementById('home-page');
+            const support = document.getElementById('support-page');
+            const privacy = document.getElementById('privacy-page');
+            const terms = document.getElementById('terms-page');
+
+            const pages = [home, support, privacy, terms];
+            pages.forEach(p => p.classList.add('hidden'));
+
+            if(pageId === 'home') home.classList.remove('hidden');
+            if(pageId === 'support') support.classList.remove('hidden');
+            if(pageId === 'privacy') privacy.classList.remove('hidden');
+            if(pageId === 'terms') terms.classList.remove('hidden');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Neural Network Background
+        const canvas = document.getElementById('neural-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const particleCount = 100;
+        const maxDistance = 180;
+        const mouse = { x: null, y: null, radius: 250 };
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            init();
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = (Math.random() - 0.5) * 0.6;
+                this.speedY = (Math.random() - 0.5) * 0.6;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
+                if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const force = (mouse.radius - distance) / mouse.radius;
+                    this.x -= dx * force * 0.02;
+                    this.y -= dy * force * 0.02;
+                }
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(59, 130, 246, 0.4)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function init() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function handleParticles() {
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < maxDistance) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(59, 130, 246, ${0.4 - distance / maxDistance})`;
+                        ctx.lineWidth = 0.8;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                        ctx.closePath();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            handleParticles();
+            requestAnimationFrame(animate);
+        }
+
+        init();
+        animate();
+    </script>
+</body>
+</html>
